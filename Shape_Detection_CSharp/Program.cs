@@ -8,18 +8,19 @@ public class Program
         var frameWidth = 640;
         var frameHigh = 480;
         SetupWindow();
-        while (true)
+
+        using (var cap = new VideoCapture(0))
         {
-            using (var cap = new VideoCapture(0))
-            {
-                cap.Set(3, frameWidth);
-                cap.Set(4, frameHigh);
+            cap.Set(3, frameWidth);
+            cap.Set(4, frameHigh);
+            while (true)
+            {               
                 Mat img = new Mat();
                 Mat imgBlur = new Mat();
                 Mat imgGary = new Mat();
                 Mat imgCanny = new Mat();
                 Mat imgDil = new Mat();
-                Mat kernel = new Mat(new Size(5, 5), MatType.CV_16S);
+                Mat kernel = Mat.Ones(new Size(5, 5), MatType.CV_16U);
                 if (cap.Read(img))
                 {
                     var imgContour = img.Clone();
@@ -31,9 +32,10 @@ public class Program
                     Cv2.Dilate(imgCanny, imgDil, kernel, iterations: 1);
 
                     GetContorous(imgDil, imgContour);
-
-                    var imgStack = StackImages(0.8,new List<List<Mat>>() {  });
+                    var imgStack = imgDil;
+                    //var imgStack = StackImages(0.8, new List<List<Mat>>() { });
                     Cv2.ImShow("Result", imgStack);
+                    Cv2.ImShow("Result", imgContour);
                     if ((Cv2.WaitKey(1) & 0xFF) == 'q')
                         break;
                 }
@@ -71,7 +73,18 @@ public class Program
             {
                 for (int y = 0; y < columns; y++)
                 {
-                    //if(imgArray[x][y].Data)
+                    if (imgArray[x][y] == imgArray[0][0])
+                    {
+                        Cv2.Resize(imgArray[x][y], imgArray[x][y], new Size(0, 0), scale, scale, InterpolationFlags.Linear);
+                    }
+                    else
+                    {
+                        Cv2.Resize(imgArray[x][y], imgArray[x][y], new Size(height, width), scale, scale, InterpolationFlags.Linear);
+                    }
+                    if (imgArray[x][y].Cols == 2)
+                    {
+                        Cv2.CvtColor(imgArray[x][y], imgArray[x][y], ColorConversionCodes.GRAY2BGR);
+                    }
                 }
             }
         }
@@ -79,6 +92,7 @@ public class Program
         {
 
         }
+        result = new Mat();
         return result;
     }
 
@@ -100,29 +114,28 @@ public class Program
                 Cv2.DrawContours(imgContour, new Mat[] { cnt }, -1, new Scalar(255, 0, 255), 7);
                 var peri = Cv2.ArcLength(cnt, true);
                 var epsilon = 0.02 * peri;
-                var approx = new Mat();
-                Cv2.ApproxPolyDP(cnt, approx, epsilon, true);
-                Console.WriteLine($"{approx.Width}");
+                var approx = cnt.ApproxPolyDP(epsilon, true);
+                //Console.WriteLine($"{approx.Width}");
                 var boundRect = Cv2.BoundingRect(approx);
                 Cv2.Rectangle(imgContour, boundRect, new Scalar(0, 255, 0), 5);
 
-                Cv2.PutText(imgContour, $"Points: {approx.Width}", new Point(boundRect.X + boundRect.Width + 20, boundRect.Y + 20), HersheyFonts.HersheyComplex, 0.7, new Scalar(0, 255, 0), 2);
+                Cv2.PutText(imgContour, $"Points: {approx.Size(0)}", new Point(boundRect.X + boundRect.Width + 20, boundRect.Y + 20), HersheyFonts.HersheyComplex, 0.7, new Scalar(0, 255, 0), 2);
                 Cv2.PutText(imgContour, $"Area: {(int)area}", new Point(boundRect.X + boundRect.Width + 20, boundRect.Y + 45), HersheyFonts.HersheyComplex, 0.7, new Scalar(0, 255, 0), 2);
 
                 //Triangle
-                if (approx.Width == 3)
+                if (approx.Size(0) == 3)
                 {
                     Cv2.PutText(imgContour, $"Triangle", new Point(boundRect.X, boundRect.Y), HersheyFonts.HersheyComplex, 0.6, new Scalar(255, 255, 255), 2);
                 }
-                else if (approx.Width == 4)
+                else if (approx.Size(0) == 4)
                 {
                     Cv2.PutText(imgContour, $"Rectangle", new Point(boundRect.X, boundRect.Y), HersheyFonts.HersheyComplex, 0.6, new Scalar(255, 255, 255), 2);
                 }
-                else if (approx.Width == 5)
+                else if (approx.Size(0) == 5)
                 {
                     Cv2.PutText(imgContour, $"Pentagon", new Point(boundRect.X, boundRect.Y), HersheyFonts.HersheyComplex, 0.6, new Scalar(255, 255, 255), 2);
                 }
-                else if (approx.Width == 6)
+                else if (approx.Size(0) == 6)
                 {
                     Cv2.PutText(imgContour, $"Hexagon", new Point(boundRect.X, boundRect.Y), HersheyFonts.HersheyComplex, 0.6, new Scalar(255, 255, 255), 2);
                 }
