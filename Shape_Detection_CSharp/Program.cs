@@ -14,33 +14,56 @@ public class Program
             cap.Set(3, frameWidth);
             cap.Set(4, frameHigh);
             while (true)
-            {               
+            {
                 Mat img = new Mat();
                 Mat imgBlur = new Mat();
                 Mat imgGary = new Mat();
                 Mat imgCanny = new Mat();
                 Mat imgDil = new Mat();
+                //Mat sobel = new Mat();
                 Mat kernel = Mat.Ones(new Size(5, 5), MatType.CV_16U);
                 if (cap.Read(img))
                 {
                     var imgContour = img.Clone();
                     var threshold1 = Cv2.GetTrackbarPos("Threshold 1", "Parameters");
                     var threshold2 = Cv2.GetTrackbarPos("Threshold 2", "Parameters");
+                    var threshold3 = Cv2.GetTrackbarPos("Area", "Parameters");
                     Cv2.GaussianBlur(img, imgBlur, new Size(7, 7), 1);
                     Cv2.CvtColor(imgBlur, imgGary, ColorConversionCodes.BGR2GRAY);
                     Cv2.Canny(imgGary, imgCanny, threshold1, threshold2);
-                    Cv2.Dilate(imgCanny, imgDil, kernel, iterations: 1);
-
-                    GetContorous(imgDil, imgContour);
-                    var imgStack = imgDil;
+                    //Cv2.Dilate(imgCanny, imgDil, kernel, iterations: 1);
+                    //GetContorous(imgDil, imgContour);
+                    /*var cicles = Cv2.HoughCircles(imgGary, HoughModes.Gradient, 1, 20, param1: threshold1, param2: threshold2, minRadius: 10, maxRadius: 50);
+                    for (int i = 0; i < cicles.Length; i++)
+                    {
+                        var cicle = cicles[i];
+                        Cv2.Circle(img, (int)cicle.Center.X, (int)cicle.Center.Y, (int)cicle.Radius, new Scalar(0, 255, 0), 2);
+                    }
+                    Cv2.ImShow("Result",img);*/
+                    //Cv2.Sobel(img, sobel, MatType.CV_8UC1, 2, 2);
+                    var lines = Cv2.HoughLinesP(imgCanny, 1, Math.PI / 180, threshold3);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        var line = lines[i];
+                        Cv2.Line(imgGary, line.P1, line.P2, new Scalar(0, 255, 0), 2);
+                    }
+                    var result = new Mat();
+                    Cv2.HConcat(new Mat[] { imgCanny, imgGary },result);
+                    Cv2.ImShow("Result", result);
+                    //var imgStack = imgDil;
                     //var imgStack = StackImages(0.8, new List<List<Mat>>() { });
-                    Cv2.ImShow("Result", imgStack);
-                    Cv2.ImShow("Result", imgContour);
+                    //Cv2.ImShow("Result", imgStack);
+                    //Cv2.ImShow("Result", imgContour);
+                    //Cv2.ImShow("Result", imgContour);
                     if ((Cv2.WaitKey(1) & 0xFF) == 'q')
                         break;
+
                 }
+                else
+                    break;
             }
         }
+        Cv2.DestroyAllWindows();
     }
 
     public static void SetupWindow()
@@ -52,7 +75,8 @@ public class Program
         Cv2.ResizeWindow("Parameters", 640, 240);
         Cv2.CreateTrackbar("Threshold 1", "Parameters", ref trackbarThreashold1Value, 255);
         Cv2.CreateTrackbar("Threshold 2", "Parameters", ref trackbarThreashold2Value, 255);
-        Cv2.CreateTrackbar("Area", "Parameters", ref trackbarAreaValue, 30000);
+        //Cv2.CreateTrackbar("Area", "Parameters", ref trackbarAreaValue, 30000);
+        Cv2.CreateTrackbar("Area", "Parameters", ref trackbarAreaValue, 255);
     }
 
     public static Mat? StackImages(double scale, List<List<Mat>> imgArray)

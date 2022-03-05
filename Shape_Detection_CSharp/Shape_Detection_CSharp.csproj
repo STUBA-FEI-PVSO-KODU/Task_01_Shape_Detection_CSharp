@@ -7,4 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.5.5.20211231" />
+  </ItemGroup>
+
 </Project>
