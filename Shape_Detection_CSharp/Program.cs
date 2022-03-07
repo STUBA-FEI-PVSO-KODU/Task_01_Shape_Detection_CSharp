@@ -181,12 +181,14 @@ public class Program
     public static void Task02()
     {
         SetupWindow(threshold1: 100, threshold2: 150, threshold3: 0);
-        string imgPath = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\org_img.png";
+        //string imgPath = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\org_img.png";
+        string imgPathSource = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\plot.jpg";
+        string imgPathDestAccum = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\acum.jpg";
         Mat imgEdge = new Mat();
         Mat imgBlur = new Mat();
         Mat imgRes = new Mat();
         var houghTrans = new HoughTransformation();
-        var imgOrig = Cv2.ImRead(imgPath, ImreadModes.Color);
+        var imgOrig = Cv2.ImRead(imgPathSource, ImreadModes.Color);
         while (true)
         {
             var threshold1 = Cv2.GetTrackbarPos("Threshold 1", "Parameters");
@@ -214,6 +216,9 @@ public class Program
             int aw, ah;
             int maxa = 0;
             var accu = houghTrans.GetAccu(out aw, out ah);
+
+            var mx = accu.Max();
+
             for (int p = 0; p < (ah * aw); p++)
             {
                 if ((int)accu[p] > maxa)
@@ -228,19 +233,19 @@ public class Program
                 byte c = (byte)((double)accu[p] * coef < 255.0 ? (double)accu[p] * coef : 255.0);
                 imgAccu.Add(new Scalar(255, 255 - c, 255 - c));
             }
-
             var result = new Mat();
             var resultH1 = new Mat();
             var resultH2 = new Mat();
             /*Cv2.HConcat(new Mat[] { imgOrig, imgEdge }, resultH1);
             Cv2.HConcat(new Mat[] { imgRes }, resultH2);*/
-            Cv2.VConcat(new Mat[] { imgOrig, imgRes }, result);
+            Cv2.HConcat(new Mat[] { imgOrig, imgRes }, result);
             Cv2.ImShow("Result", result);
             Cv2.ImShow("Result-Edges", imgEdge);
             Cv2.ImShow("Result-Accu", imgAccu);
-            if ((Cv2.WaitKey(1) & 0xFF) == 'q')
+            Cv2.ImWrite(imgPathDestAccum, imgAccu);
+            if ((Cv2.WaitKey(10) & 0xFF) == 'q')
                 break;
-            Task.Delay(100);
         }
+        Cv2.DestroyAllWindows();
     }
 }

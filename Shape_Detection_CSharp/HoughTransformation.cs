@@ -101,8 +101,8 @@ namespace Shape_Detection_CSharp
                 AccumulatorHeight = (int)(HoughHeight * 2.0);
                 AccumulatorWidth = 180;
                 Accumulator.Clear();
-                Accumulator.Capacity = AccumulatorHeight * AccumulatorWidth;
-                for (int i = 0; i < Accumulator.Capacity; i++)
+                var size = AccumulatorHeight * AccumulatorWidth - Accumulator.Count;
+                for (int i = 0; i < size; i++)
                 {
                     int val = 0;
                     Accumulator.Add(val);
@@ -161,7 +161,7 @@ namespace Shape_Detection_CSharp
                         }
                     }
                 }
-                result = localMax <= value;
+                result = value >= localMax;
             }
             return result;
         }
