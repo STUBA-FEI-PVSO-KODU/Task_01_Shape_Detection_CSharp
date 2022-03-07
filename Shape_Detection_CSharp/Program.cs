@@ -1,82 +1,23 @@
 ﻿using OpenCvSharp;
+using Shape_Detection_CSharp;
 
 public class Program
 {
 
     public static void Main(string[] args)
     {
-        var frameWidth = 640;
-        var frameHigh = 480;
-        SetupWindow();
-
-        using (var cap = new VideoCapture(0))
-        {
-            cap.Set(3, frameWidth);
-            cap.Set(4, frameHigh);
-            while (true)
-            {
-                Mat img = new Mat();
-                Mat imgBlur = new Mat();
-                Mat imgGary = new Mat();
-                Mat imgCanny = new Mat();
-                Mat imgDil = new Mat();
-                //Mat sobel = new Mat();
-                Mat kernel = Mat.Ones(new Size(5, 5), MatType.CV_16U);
-                if (cap.Read(img))
-                {
-                    var imgContour = img.Clone();
-                    var threshold1 = Cv2.GetTrackbarPos("Threshold 1", "Parameters");
-                    var threshold2 = Cv2.GetTrackbarPos("Threshold 2", "Parameters");
-                    var threshold3 = Cv2.GetTrackbarPos("Area", "Parameters");
-                    Cv2.GaussianBlur(img, imgBlur, new Size(7, 7), 1);
-                    Cv2.CvtColor(imgBlur, imgGary, ColorConversionCodes.BGR2GRAY);
-                    Cv2.Canny(imgGary, imgCanny, threshold1, threshold2);
-                    //Cv2.Dilate(imgCanny, imgDil, kernel, iterations: 1);
-                    //GetContorous(imgDil, imgContour);
-                    /*var cicles = Cv2.HoughCircles(imgGary, HoughModes.Gradient, 1, 20, param1: threshold1, param2: threshold2, minRadius: 10, maxRadius: 50);
-                    for (int i = 0; i < cicles.Length; i++)
-                    {
-                        var cicle = cicles[i];
-                        Cv2.Circle(img, (int)cicle.Center.X, (int)cicle.Center.Y, (int)cicle.Radius, new Scalar(0, 255, 0), 2);
-                    }
-                    Cv2.ImShow("Result",img);*/
-                    //Cv2.Sobel(img, sobel, MatType.CV_8UC1, 2, 2);
-                    var lines = Cv2.HoughLinesP(imgCanny, 1, Math.PI / 180, threshold3);
-                    for (int i = 0; i < lines.Length; i++)
-                    {
-                        var line = lines[i];
-                        Cv2.Line(imgGary, line.P1, line.P2, new Scalar(0, 255, 0), 2);
-                    }
-                    var result = new Mat();
-                    Cv2.HConcat(new Mat[] { imgCanny, imgGary },result);
-                    Cv2.ImShow("Result", result);
-                    //var imgStack = imgDil;
-                    //var imgStack = StackImages(0.8, new List<List<Mat>>() { });
-                    //Cv2.ImShow("Result", imgStack);
-                    //Cv2.ImShow("Result", imgContour);
-                    //Cv2.ImShow("Result", imgContour);
-                    if ((Cv2.WaitKey(1) & 0xFF) == 'q')
-                        break;
-
-                }
-                else
-                    break;
-            }
-        }
-        Cv2.DestroyAllWindows();
+        //Task01();
+        Task02();
     }
 
-    public static void SetupWindow()
+    public static void SetupWindow(int threshold1 = 150, int threshold2 = 255, int threshold3 = 5000)
     {
-        int trackbarThreashold1Value = 150;
-        int trackbarThreashold2Value = 255;
-        int trackbarAreaValue = 5000;
         Cv2.NamedWindow("Parameters");
         Cv2.ResizeWindow("Parameters", 640, 240);
-        Cv2.CreateTrackbar("Threshold 1", "Parameters", ref trackbarThreashold1Value, 255);
-        Cv2.CreateTrackbar("Threshold 2", "Parameters", ref trackbarThreashold2Value, 255);
-        //Cv2.CreateTrackbar("Area", "Parameters", ref trackbarAreaValue, 30000);
-        Cv2.CreateTrackbar("Area", "Parameters", ref trackbarAreaValue, 255);
+        Cv2.CreateTrackbar("Threshold 1", "Parameters", ref threshold1, 255);
+        Cv2.CreateTrackbar("Threshold 2", "Parameters", ref threshold2, 255);
+        //Cv2.CreateTrackbar("Area", "Parameters", ref threshold3, 30000);
+        Cv2.CreateTrackbar("Area", "Parameters", ref threshold3, 255);
     }
 
     public static Mat? StackImages(double scale, List<List<Mat>> imgArray)
@@ -169,6 +110,137 @@ public class Program
                 }
             }
 
+        }
+    }
+
+    public static void Task01()
+    {
+        var frameWidth = 640;
+        var frameHigh = 480;
+        SetupWindow();
+
+        using (var cap = new VideoCapture(0))
+        {
+            cap.Set(3, frameWidth);
+            cap.Set(4, frameHigh);
+            while (true)
+            {
+                Mat img = new Mat();
+                Mat imgBlur = new Mat();
+                Mat imgGary = new Mat();
+                Mat imgCanny = new Mat();
+                Mat imgDil = new Mat();
+                //Mat sobel = new Mat();
+                Mat kernel = Mat.Ones(new Size(5, 5), MatType.CV_16U);
+                if (cap.Read(img))
+                {
+                    var imgContour = img.Clone();
+                    var threshold1 = Cv2.GetTrackbarPos("Threshold 1", "Parameters");
+                    var threshold2 = Cv2.GetTrackbarPos("Threshold 2", "Parameters");
+                    var threshold3 = Cv2.GetTrackbarPos("Area", "Parameters");
+                    Cv2.GaussianBlur(img, imgBlur, new Size(7, 7), 1);
+                    Cv2.CvtColor(imgBlur, imgGary, ColorConversionCodes.BGR2GRAY);
+                    Cv2.Canny(imgGary, imgCanny, threshold1, threshold2);
+                    //Cv2.Dilate(imgCanny, imgDil, kernel, iterations: 1);
+                    //GetContorous(imgDil, imgContour);
+                    /*var cicles = Cv2.HoughCircles(imgGary, HoughModes.Gradient, 1, 20, param1: threshold1, param2: threshold2, minRadius: 10, maxRadius: 50);
+                    for (int i = 0; i < cicles.Length; i++)
+                    {
+                        var cicle = cicles[i];
+                        Cv2.Circle(img, (int)cicle.Center.X, (int)cicle.Center.Y, (int)cicle.Radius, new Scalar(0, 255, 0), 2);
+                    }
+                    Cv2.ImShow("Result",img);*/
+                    //Cv2.Sobel(img, sobel, MatType.CV_8UC1, 2, 2);
+                    var lines = Cv2.HoughLinesP(imgCanny, 1, Math.PI / 180, threshold3);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        var line = lines[i];
+                        Cv2.Line(imgGary, line.P1, line.P2, new Scalar(0, 255, 0), 2);
+                    }
+                    var result = new Mat();
+                    var cv2Result = new Mat();
+                    Cv2.HConcat(new Mat[] { imgCanny, imgGary }, cv2Result);
+                    Cv2.HConcat(new Mat[] { imgCanny, imgGary }, cv2Result);
+                    Cv2.ImShow("Result", result);
+                    //var imgStack = imgDil;
+                    //var imgStack = StackImages(0.8, new List<List<Mat>>() { });
+                    //Cv2.ImShow("Result", imgStack);
+                    //Cv2.ImShow("Result", imgContour);
+                    //Cv2.ImShow("Result", imgContour);
+                    if ((Cv2.WaitKey(1) & 0xFF) == 'q')
+                        break;
+
+                }
+                else
+                    break;
+            }
+        }
+        Cv2.DestroyAllWindows();
+    }
+
+    public static void Task02()
+    {
+        SetupWindow(threshold1: 100, threshold2: 150, threshold3: 0);
+        string imgPath = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\org_img.png";
+        Mat imgEdge = new Mat();
+        Mat imgBlur = new Mat();
+        Mat imgRes = new Mat();
+        var houghTrans = new HoughTransformation();
+        var imgOrig = Cv2.ImRead(imgPath, ImreadModes.Color);
+        while (true)
+        {
+            var threshold1 = Cv2.GetTrackbarPos("Threshold 1", "Parameters");
+            var threshold2 = Cv2.GetTrackbarPos("Threshold 2", "Parameters");
+            var threshold3 = Cv2.GetTrackbarPos("Area", "Parameters");
+            imgRes = imgOrig.Clone();
+            Cv2.Blur(imgOrig, imgBlur, new Size(5, 5));
+            Cv2.Canny(imgBlur, imgEdge, threshold1, threshold2, 3);
+
+            int w = imgEdge.Cols;
+            int h = imgEdge.Rows;
+            var data = new List<byte>(imgEdge.ToBytes(ext: ".bmp"));
+            houghTrans.Transform(data, w, h);
+            if (threshold3 == 0)
+                threshold3 = w > h ? w / 4 : h / 4;
+            var lines = houghTrans.GetLines(threshold3);
+
+            //Draw the results 
+            foreach (var line in lines)
+            {
+                Cv2.Line(imgRes, (int)line.Start.X, (int)line.Start.Y, (int)line.End.X, (int)line.End.Y, new Scalar(255, 0, 0), 1);
+            }
+
+            //Visualize all
+            int aw, ah;
+            int maxa = 0;
+            var accu = houghTrans.GetAccu(out aw, out ah);
+            for (int p = 0; p < (ah * aw); p++)
+            {
+                if ((int)accu[p] > maxa)
+                    maxa = accu[p];
+            }
+            double contrast = 1.0;
+            double coef = 255.0 / (double)maxa * contrast;
+
+            var imgAccu = new Mat(ah, aw, MatType.CV_8UC3);
+            for (int p = 0; p < (ah * aw); p++)
+            {
+                byte c = (byte)((double)accu[p] * coef < 255.0 ? (double)accu[p] * coef : 255.0);
+                imgAccu.Add(new Scalar(255, 255 - c, 255 - c));
+            }
+
+            var result = new Mat();
+            var resultH1 = new Mat();
+            var resultH2 = new Mat();
+            /*Cv2.HConcat(new Mat[] { imgOrig, imgEdge }, resultH1);
+            Cv2.HConcat(new Mat[] { imgRes }, resultH2);*/
+            Cv2.VConcat(new Mat[] { imgOrig, imgRes }, result);
+            Cv2.ImShow("Result", result);
+            Cv2.ImShow("Result-Edges", imgEdge);
+            Cv2.ImShow("Result-Accu", imgAccu);
+            if ((Cv2.WaitKey(1) & 0xFF) == 'q')
+                break;
+            Task.Delay(100);
         }
     }
 }
