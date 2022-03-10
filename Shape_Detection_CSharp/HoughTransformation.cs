@@ -96,16 +96,16 @@ namespace Shape_Detection_CSharp
             if (data != null && width > 0 && height > 0)
             {
                 ImageWidth = width;
-                ImageHeight= height;
-                HoughHeight = ((Math.Sqrt(2.0) * (height > width ? height : width)) / 2.0);
+                ImageHeight = height;
+                HoughHeight = Math.Sqrt(width * width + height * height);
                 AccumulatorHeight = (int)(HoughHeight * 2.0);
                 AccumulatorWidth = 180;
                 Accumulator.Clear();
                 var size = AccumulatorHeight * AccumulatorWidth - Accumulator.Count;
+                Accumulator.Capacity = size;
                 for (int i = 0; i < size; i++)
                 {
-                    int val = 0;
-                    Accumulator.Add(val);
+                    Accumulator.Add(0);
                 }
                 CenterX = width / 2;
                 CenterY = height / 2;
@@ -119,7 +119,7 @@ namespace Shape_Detection_CSharp
                             for (int t = 0; t < AccumulatorWidth; t++)
                             {
                                 double r = ((x - CenterX) * Math.Cos(t * DEG2RAD)) + ((y - CenterY) * Math.Sin(t * DEG2RAD));
-                                var index = (int)(Math.Round(r + HoughHeight) * 180.0) + t;
+                                var index = (int)(Math.Round(r + HoughHeight) * AccumulatorWidth) + t;
                                 Accumulator[index]++;
                             }
                         }
@@ -136,7 +136,7 @@ namespace Shape_Detection_CSharp
         /// <param name="r">Represents index of accumulator height (radius).</param>
         /// <param name="t">Represents index of accumulator width (thetha).</param>
         /// <param name="localSpace">Represents a 2d local space, which is check.</param>
-        /// <returns>Returns true if provided value is maximum, otherwise true.</returns>
+        /// <returns>Returns true if provided value is maximum, otherwise false.</returns>
         public bool IsLocalMax(int value, int r, int t, Vector2 localSpace)
         {
             var result = false;
@@ -189,7 +189,7 @@ namespace Shape_Detection_CSharp
                         {
                             if (IsLocalMax(accValue, r, t, new Vector2(9, 9)))
                             {
-                                int x1, y1, x2, y2;
+                                /*int x1, y1, x2, y2;
                                 if (t >= 45 && t <= 135)
                                 {
                                     //y = (r - x cos(t)) / sin(t) 
@@ -205,11 +205,20 @@ namespace Shape_Detection_CSharp
                                     x1 = (int)((r - (AccumulatorHeight / 2) - ((y1 - (ImageHeight / 2)) * Math.Sin(t * DEG2RAD))) / Math.Cos(t * DEG2RAD) + (ImageWidth / 2));
                                     y2 = ImageHeight - 0;
                                     x2 = (int)((r - (AccumulatorHeight / 2) - ((y2 - (ImageHeight / 2)) * Math.Sin(t * DEG2RAD))) / Math.Cos(t * DEG2RAD) + (ImageWidth / 2));
-                                }
+                                }*/
+                                var a = Math.Cos(t * DEG2RAD);
+                                var b = Math.Sin(t * DEG2RAD);
+                                var x0 = (a * ((double)r - HoughHeight)) + CenterX;
+                                var y0 = (b * ((double)r - HoughHeight)) + CenterY;
+                                var x1 = (int)(x0 + ImageWidth * (-b));
+                                var y1 = (int)(y0 + ImageHeight * (a));
+                                var x2 = (int)(x0 - ImageWidth * (-b));
+                                var y2 = (int)(y0 - ImageHeight * (a));
                                 var line = new Position(x1, y1, x2, y2);
+                                //var line = new Position(y1,x1, y2,x2);
                                 result.Add(line);
                             }
-                        }                        
+                        }
                     }
                 }
             }
@@ -221,6 +230,89 @@ namespace Shape_Detection_CSharp
             w = AccumulatorWidth;
             h = AccumulatorHeight;
             return Accumulator.ToArray();
+        }
+
+        public bool TransformQK(List<byte> data, int width, int height, byte pixelMinValue = 250)
+        {
+            var result = false;
+            if (data != null && width > 0 && height > 0)
+            {
+                ImageWidth = width;
+                ImageHeight = height;
+                //HoughHeight = ((Math.Sqrt(2.0) * (height > width ? height : width)) / 2.0);
+                HoughHeight = Math.Sqrt(width * width + height * height);
+                AccumulatorHeight = (int)HoughHeight;
+                AccumulatorWidth = 360;
+                Accumulator.Clear();
+                var size = AccumulatorHeight * AccumulatorWidth - Accumulator.Count;
+                for (int i = 0; i < size; i++)
+                {
+                    int val = 0;
+                    Accumulator.Add(val);
+                }
+                //CenterX = width;
+                //CenterY = height;
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        var value = data[(y * width) + x];
+                        if (value >= pixelMinValue)
+                        {
+                            for (int phi = 0; phi < AccumulatorWidth; phi++)
+                            {
+                                double r = x * Math.Cos(phi * DEG2RAD) + y * Math.Sin(phi * DEG2RAD);
+                                var index = (int)(Math.Round(r + AccumulatorWidth) + phi);
+                                Accumulator[index]++;
+                            }
+                        }
+                    }
+                }
+                result = Accumulator.Count > 0;
+            }
+            return result;
+        }
+
+        public List<Position> GetLinesQK(int threshold)
+        {
+            var result = new List<Position>();
+            if (Accumulator.Count > 0 && threshold > 0)
+            {
+                for (int r = 0; r < AccumulatorHeight; r++)
+                {
+                    for (int phi = 0; phi < AccumulatorWidth; phi++)
+                    {
+                        var accValue = Accumulator[(r * AccumulatorWidth) + phi];
+                        if ((int)accValue >= threshold)
+                        {
+                            if (IsLocalMax(accValue, r, phi, new Vector2(9, 9)))
+                            {
+                                int x1, y1, x2, y2;
+                                if ((phi >= 45 && phi <= 135) || (phi >= 225 && phi <= 315))
+                                {
+                                    //y = (r - x cos(t)) / sin(t) 
+                                    x1 = 0;
+                                    y1 = (int)((r - x1 * Math.Cos(phi * DEG2RAD)) / Math.Sin(phi * DEG2RAD));
+                                    x2 = ImageWidth - 0;
+                                    y2 = (int)((r - x2 * Math.Cos(phi * DEG2RAD)) / Math.Sin(phi * DEG2RAD));
+                                }
+                                else
+                                {
+                                    //x = (r - y sin(t)) / cos(t);  
+                                    y1 = 0;
+                                    x1 = (int)((r - y1 * Math.Sin(phi * DEG2RAD)) / Math.Cos(phi * DEG2RAD));
+                                    y2 = ImageHeight - 0;
+                                    x2 = (int)((r - y2 * Math.Sin(phi * DEG2RAD)) / Math.Cos(phi * DEG2RAD));
+                                }
+                                var line = new Position(x1, y1, x2, y2);
+                                result.Add(line);
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
         }
 
         #endregion

@@ -180,9 +180,9 @@ public class Program
 
     public static void Task02()
     {
-        SetupWindow(threshold1: 100, threshold2: 150, threshold3: 0);
-        //string imgPath = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\org_img.png";
-        string imgPathSource = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\plot.jpg";
+        SetupWindow(threshold1: 100, threshold2: 150, threshold3: 105);
+        string imgPathSource = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\org_img.png";
+        //string imgPathSource = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\plot.jpg";
         string imgPathDestAccum = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\acum.jpg";
         Mat imgEdge = new Mat();
         Mat imgBlur = new Mat();
@@ -200,7 +200,15 @@ public class Program
 
             int w = imgEdge.Cols;
             int h = imgEdge.Rows;
-            var data = new List<byte>(imgEdge.ToBytes(ext: ".bmp"));
+            var data = new List<byte>();
+            for (int y = 0; y < imgEdge.Rows; y++)
+            {
+                for (int x = 0; x < imgEdge.Cols; x++)
+                {
+                    data.Add(imgEdge.At<byte>(y,x));
+                }
+            }
+            //var data = new List<byte>(imgEdge.ToBytes(ext: ".bmp"));
             houghTrans.Transform(data, w, h);
             if (threshold3 == 0)
                 threshold3 = w > h ? w / 4 : h / 4;
@@ -209,11 +217,11 @@ public class Program
             //Draw the results 
             foreach (var line in lines)
             {
-                Cv2.Line(imgRes, (int)line.Start.X, (int)line.Start.Y, (int)line.End.X, (int)line.End.Y, new Scalar(255, 0, 0), 1);
+                Cv2.Line(imgRes, (int)line.Start.X, (int)line.Start.Y, (int)line.End.X, (int)line.End.Y, new Scalar(255, 0, 0), 2);
             }
 
             //Visualize all
-            int aw, ah;
+            /*int aw, ah;
             int maxa = 0;
             var accu = houghTrans.GetAccu(out aw, out ah);
 
@@ -232,7 +240,7 @@ public class Program
             {
                 byte c = (byte)((double)accu[p] * coef < 255.0 ? (double)accu[p] * coef : 255.0);
                 imgAccu.Add(new Scalar(255, 255 - c, 255 - c));
-            }
+            }*/
             var result = new Mat();
             var resultH1 = new Mat();
             var resultH2 = new Mat();
@@ -241,8 +249,8 @@ public class Program
             Cv2.HConcat(new Mat[] { imgOrig, imgRes }, result);
             Cv2.ImShow("Result", result);
             Cv2.ImShow("Result-Edges", imgEdge);
-            Cv2.ImShow("Result-Accu", imgAccu);
-            Cv2.ImWrite(imgPathDestAccum, imgAccu);
+            //Cv2.ImShow("Result-Accu", imgAccu);
+            //Cv2.ImWrite(imgPathDestAccum, imgAccu);
             if ((Cv2.WaitKey(10) & 0xFF) == 'q')
                 break;
         }
