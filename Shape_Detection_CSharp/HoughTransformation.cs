@@ -97,11 +97,11 @@ namespace Shape_Detection_CSharp
             {
                 ImageWidth = width;
                 ImageHeight = height;
-                HoughHeight = Math.Sqrt(width * width + height * height);
+                HoughHeight = Math.Sqrt(width * width + height * height) / 2;
                 AccumulatorHeight = (int)(HoughHeight * 2.0);
-                AccumulatorWidth = 180;
+                AccumulatorWidth = 360;
                 Accumulator.Clear();
-                var size = AccumulatorHeight * AccumulatorWidth - Accumulator.Count;
+                var size = AccumulatorHeight * AccumulatorWidth;
                 Accumulator.Capacity = size;
                 for (int i = 0; i < size; i++)
                 {
@@ -190,7 +190,7 @@ namespace Shape_Detection_CSharp
                             if (IsLocalMax(accValue, r, t, new Vector2(9, 9)))
                             {
                                 /*int x1, y1, x2, y2;
-                                if (t >= 45 && t <= 135)
+                                if ((t >= 45 && t <= 135 )|| (t >= 45 + 180 && t <= 135 + 180))
                                 {
                                     //y = (r - x cos(t)) / sin(t) 
                                     x1 = 0;
