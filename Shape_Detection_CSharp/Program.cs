@@ -205,7 +205,7 @@ public class Program
             {
                 for (int x = 0; x < imgEdge.Cols; x++)
                 {
-                    data.Add(imgEdge.At<byte>(y,x));
+                    data.Add(imgEdge.At<byte>(y, x));
                 }
             }
             //var data = new List<byte>(imgEdge.ToBytes(ext: ".bmp"));
@@ -221,11 +221,9 @@ public class Program
             }
 
             //Visualize all
-            /*int aw, ah;
+            int aw, ah;
             int maxa = 0;
             var accu = houghTrans.GetAccu(out aw, out ah);
-
-            var mx = accu.Max();
 
             for (int p = 0; p < (ah * aw); p++)
             {
@@ -236,21 +234,26 @@ public class Program
             double coef = 255.0 / (double)maxa * contrast;
 
             var imgAccu = new Mat(ah, aw, MatType.CV_8UC3);
-            for (int p = 0; p < (ah * aw); p++)
+            unsafe
             {
-                byte c = (byte)((double)accu[p] * coef < 255.0 ? (double)accu[p] * coef : 255.0);
-                imgAccu.Add(new Scalar(255, 255 - c, 255 - c));
-            }*/
+                for (int p = 0; p < (ah * aw); p++)
+                {
+                    byte c = (byte)((double)accu[p] * coef < 255.0 ? (double)accu[p] * coef : 255.0);
+                    byte* dt = imgAccu.DataPointer;
+                    dt[(p * 3) +0] = 255;
+                    dt[(p * 3) + 1] = (byte)(255 - c);
+                    dt[(p * 3) + 2] = (byte)(255 - c);
+                }
+            }
             var result = new Mat();
             var resultH1 = new Mat();
             var resultH2 = new Mat();
-            /*Cv2.HConcat(new Mat[] { imgOrig, imgEdge }, resultH1);
-            Cv2.HConcat(new Mat[] { imgRes }, resultH2);*/
+
             Cv2.HConcat(new Mat[] { imgOrig, imgRes }, result);
             Cv2.ImShow("Result", result);
             Cv2.ImShow("Result-Edges", imgEdge);
-            //Cv2.ImShow("Result-Accu", imgAccu);
-            //Cv2.ImWrite(imgPathDestAccum, imgAccu);
+            Cv2.ImShow("Result-Accu", imgAccu);
+            Cv2.ImWrite(imgPathDestAccum, imgAccu);
             if ((Cv2.WaitKey(10) & 0xFF) == 'q')
                 break;
         }
