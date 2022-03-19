@@ -10,14 +10,14 @@ public class Program
         Task02();
     }
 
-    public static void SetupWindow(int threshold1 = 150, int threshold2 = 255, int threshold3 = 5000)
+    public static void SetupWindow(string parameterName1 = "threshold1", string parameterName2 = "threshold2", string parameterName3 = "threshold3", int threshold1 = 150, int threshold2 = 255, int threshold3 = 5000)
     {
         Cv2.NamedWindow("Parameters");
         Cv2.ResizeWindow("Parameters", 640, 240);
-        Cv2.CreateTrackbar("Threshold 1", "Parameters", ref threshold1, 255);
-        Cv2.CreateTrackbar("Threshold 2", "Parameters", ref threshold2, 255);
+        Cv2.CreateTrackbar(parameterName1, "Parameters", ref threshold1, 255);
+        Cv2.CreateTrackbar(parameterName2, "Parameters", ref threshold2, 255);
         //Cv2.CreateTrackbar("Area", "Parameters", ref threshold3, 30000);
-        Cv2.CreateTrackbar("Area", "Parameters", ref threshold3, 255);
+        Cv2.CreateTrackbar(parameterName3, "Parameters", ref threshold3, 255);
     }
 
     public static Mat? StackImages(double scale, List<List<Mat>> imgArray)
@@ -180,8 +180,10 @@ public class Program
 
     public static void Task02()
     {
-        SetupWindow(threshold1: 100, threshold2: 150, threshold3: 105);
-        string imgPathSource = @$"{Environment.CurrentDirectory}\..\..\..\img\org_img.png";
+        SetupWindow(parameterName1: "Canny threshold 1", parameterName2: "Canny threshold 2", parameterName3: "Hough threshold", threshold1: 100, threshold2: 150, threshold3: 105);
+        //string imgPathSource = @$"{Environment.CurrentDirectory}\..\..\..\img\org_img.png";
+        //string imgPathSource = @$"{Environment.CurrentDirectory}\..\..\..\img\sudoku.png";
+        string imgPathSource = @$"{Environment.CurrentDirectory}\..\..\..\img\flats.jpg";
         Mat imgEdge = new Mat();
         Mat imgBlur = new Mat();
         Mat imgRes = new Mat();
@@ -189,9 +191,9 @@ public class Program
         var imgOrig = Cv2.ImRead(imgPathSource, ImreadModes.Color);
         while (true)
         {
-            var threshold1 = Cv2.GetTrackbarPos("Threshold 1", "Parameters");
-            var threshold2 = Cv2.GetTrackbarPos("Threshold 2", "Parameters");
-            var threshold3 = Cv2.GetTrackbarPos("Area", "Parameters");
+            var threshold1 = Cv2.GetTrackbarPos("Canny threshold 1", "Parameters");
+            var threshold2 = Cv2.GetTrackbarPos("Canny threshold 2", "Parameters");
+            var threshold3 = Cv2.GetTrackbarPos("Hough threshold", "Parameters");
             imgRes = imgOrig.Clone();
             Cv2.Blur(imgOrig, imgBlur, new Size(5, 5));
             Cv2.Canny(imgBlur, imgEdge, threshold1, threshold2, 3);
