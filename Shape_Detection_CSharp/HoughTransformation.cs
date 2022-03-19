@@ -225,11 +225,94 @@ namespace Shape_Detection_CSharp
             return result;
         }
 
-        public List<int> GetAccu(out int w, out int h)
+        public int[] GetAccu(out int w, out int h)
         {
             w = AccumulatorWidth;
             h = AccumulatorHeight;
-            return Accumulator;
+            return Accumulator.ToArray();
+        }
+
+        public bool TransformQK(List<byte> data, int width, int height, byte pixelMinValue = 250)
+        {
+            var result = false;
+            if (data != null && width > 0 && height > 0)
+            {
+                ImageWidth = width;
+                ImageHeight = height;
+                //HoughHeight = ((Math.Sqrt(2.0) * (height > width ? height : width)) / 2.0);
+                HoughHeight = Math.Sqrt(width * width + height * height);
+                AccumulatorHeight = (int)HoughHeight;
+                AccumulatorWidth = 360;
+                Accumulator.Clear();
+                var size = AccumulatorHeight * AccumulatorWidth - Accumulator.Count;
+                for (int i = 0; i < size; i++)
+                {
+                    int val = 0;
+                    Accumulator.Add(val);
+                }
+                //CenterX = width;
+                //CenterY = height;
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        var value = data[(y * width) + x];
+                        if (value >= pixelMinValue)
+                        {
+                            for (int phi = 0; phi < AccumulatorWidth; phi++)
+                            {
+                                double r = x * Math.Cos(phi * DEG2RAD) + y * Math.Sin(phi * DEG2RAD);
+                                var index = (int)(Math.Round(r + AccumulatorWidth) + phi);
+                                Accumulator[index]++;
+                            }
+                        }
+                    }
+                }
+                result = Accumulator.Count > 0;
+            }
+            return result;
+        }
+
+        public List<Position> GetLinesQK(int threshold)
+        {
+            var result = new List<Position>();
+            if (Accumulator.Count > 0 && threshold > 0)
+            {
+                for (int r = 0; r < AccumulatorHeight; r++)
+                {
+                    for (int phi = 0; phi < AccumulatorWidth; phi++)
+                    {
+                        var accValue = Accumulator[(r * AccumulatorWidth) + phi];
+                        if ((int)accValue >= threshold)
+                        {
+                            if (IsLocalMax(accValue, r, phi, new Vector2(9, 9)))
+                            {
+                                int x1, y1, x2, y2;
+                                if ((phi >= 45 && phi <= 135) || (phi >= 225 && phi <= 315))
+                                {
+                                    //y = (r - x cos(t)) / sin(t) 
+                                    x1 = 0;
+                                    y1 = (int)((r - x1 * Math.Cos(phi * DEG2RAD)) / Math.Sin(phi * DEG2RAD));
+                                    x2 = ImageWidth - 0;
+                                    y2 = (int)((r - x2 * Math.Cos(phi * DEG2RAD)) / Math.Sin(phi * DEG2RAD));
+                                }
+                                else
+                                {
+                                    //x = (r - y sin(t)) / cos(t);  
+                                    y1 = 0;
+                                    x1 = (int)((r - y1 * Math.Sin(phi * DEG2RAD)) / Math.Cos(phi * DEG2RAD));
+                                    y2 = ImageHeight - 0;
+                                    x2 = (int)((r - y2 * Math.Sin(phi * DEG2RAD)) / Math.Cos(phi * DEG2RAD));
+                                }
+                                var line = new Position(x1, y1, x2, y2);
+                                result.Add(line);
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
         }
 
         #endregion
