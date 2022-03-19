@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using Shape_Detection_CSharp;
 
 public class Program
@@ -188,9 +181,7 @@ public class Program
     public static void Task02()
     {
         SetupWindow(threshold1: 100, threshold2: 150, threshold3: 105);
-        string imgPathSource = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\org_img.png";
-        //string imgPathSource = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\plot.jpg";
-        string imgPathDestAccum = @"C:\Users\Ondrej\Disk Google\Škola\VŠ\4 Ročník\LS\PVSO\Cvicenia\acum.jpg";
+        string imgPathSource = @$"{Environment.CurrentDirectory}\..\..\..\img\org_img.png";
         Mat imgEdge = new Mat();
         Mat imgBlur = new Mat();
         Mat imgRes = new Mat();
