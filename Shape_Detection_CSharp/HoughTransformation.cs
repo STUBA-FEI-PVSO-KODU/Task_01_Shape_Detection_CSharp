@@ -120,7 +120,8 @@ namespace Shape_Detection_CSharp
                             {
                                 double r = ((x - CenterX) * Math.Cos(t * DEG2RAD)) + ((y - CenterY) * Math.Sin(t * DEG2RAD));
                                 var index = (int)(Math.Round(r + HoughHeight) * AccumulatorWidth) + t;
-                                Accumulator[index]++;
+                                if (index < AccumulatorHeight * AccumulatorWidth)
+                                    Accumulator[index]++;
                             }
                         }
                     }
@@ -185,12 +186,12 @@ namespace Shape_Detection_CSharp
                     for (int t = 0; t < AccumulatorWidth; t++)
                     {
                         var accValue = Accumulator[(r * AccumulatorWidth) + t];
-                        if ((int)accValue >= threshold)
+                        if (accValue >= threshold)
                         {
-                            if (IsLocalMax(accValue, r, t, new Vector2(9, 9)))
+                            if (IsLocalMax(accValue, r, t, new Vector2(3, 3)))
                             {
-                                /*int x1, y1, x2, y2;
-                                if ((t >= 45 && t <= 135 )|| (t >= 45 + 180 && t <= 135 + 180))
+                                int x1, y1, x2, y2;
+                                if ((t >= 45 && t <= 135) || (t >= 45 + 180 && t <= 135 + 180))
                                 {
                                     //y = (r - x cos(t)) / sin(t) 
                                     x1 = 0;
@@ -205,8 +206,10 @@ namespace Shape_Detection_CSharp
                                     x1 = (int)((r - (AccumulatorHeight / 2) - ((y1 - (ImageHeight / 2)) * Math.Sin(t * DEG2RAD))) / Math.Cos(t * DEG2RAD) + (ImageWidth / 2));
                                     y2 = ImageHeight - 0;
                                     x2 = (int)((r - (AccumulatorHeight / 2) - ((y2 - (ImageHeight / 2)) * Math.Sin(t * DEG2RAD))) / Math.Cos(t * DEG2RAD) + (ImageWidth / 2));
-                                }*/
-                                var a = Math.Cos(t * DEG2RAD);
+                                }
+                                var line = new Position(x1, y1, x2, y2);
+
+                                /*var a = Math.Cos(t * DEG2RAD);
                                 var b = Math.Sin(t * DEG2RAD);
                                 var x0 = (a * ((double)r - HoughHeight)) + CenterX;
                                 var y0 = (b * ((double)r - HoughHeight)) + CenterY;
@@ -214,8 +217,7 @@ namespace Shape_Detection_CSharp
                                 var y1 = (int)(y0 + ImageHeight * (a));
                                 var x2 = (int)(x0 - ImageWidth * (-b));
                                 var y2 = (int)(y0 - ImageHeight * (a));
-                                var line = new Position(x1, y1, x2, y2);
-                                //var line = new Position(y1,x1, y2,x2);
+                                var line = new Position(y1,x1, y2,x2);*/
                                 result.Add(line);
                             }
                         }
