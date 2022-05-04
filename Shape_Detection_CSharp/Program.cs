@@ -71,18 +71,32 @@ public class Program
         if (imgContour == null)
             throw new ArgumentNullException(nameof(imgContour));
         var hierarchy = new Mat();
-        Cv2.FindContours(img, out var contours, hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxNone);
+        Cv2.FindContours(img, out var contours, hierarchy, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
         foreach (var cnt in contours)
         {
             var area = Cv2.ContourArea(cnt);
-            var areaMin = Cv2.GetTrackbarPos("Area", "Parameters");
+            var areaMin = Cv2.GetTrackbarPos("Hough", "Parameters");
             //Filter na velkost
             if (area > areaMin)
             {
+                var list = new List<List<int>>();
                 Cv2.DrawContours(imgContour, new Mat[] { cnt }, -1, new Scalar(255, 0, 255), 7);
                 var peri = Cv2.ArcLength(cnt, true);
                 var epsilon = 0.02 * peri;
                 var approx = cnt.ApproxPolyDP(epsilon, true);
+
+                for (int y = 0; y < cnt.Rows; y++)
+                {
+                    var row = new List<int>();
+                    for (int x = 0; x < cnt.Cols; x++)
+                    {
+                        var value = cnt.At<int>(y, x);
+                        row.Add(value);
+                    }
+                    list.Add(row);
+                }
+                
+
                 //Console.WriteLine($"{approx.Width}");
                 var boundRect = Cv2.BoundingRect(approx);
                 Cv2.Rectangle(imgContour, boundRect, new Scalar(0, 255, 0), 5);
@@ -144,8 +158,8 @@ public class Program
                     Cv2.GaussianBlur(img, imgBlur, new OpenCvSharp.Size(7, 7), 1);
                     Cv2.CvtColor(imgBlur, imgGary, ColorConversionCodes.BGR2GRAY);
                     Cv2.Canny(imgGary, imgCanny, threshold1, threshold2);
-                    //Cv2.Dilate(imgCanny, imgDil, kernel, iterations: 1);
-                    //GetContorous(imgDil, imgContour);
+                    Cv2.Dilate(imgCanny, imgDil, kernel, iterations: 1);
+                    GetContorous(imgDil, imgContour);
                     var cicles = Cv2.HoughCircles(imgGary, HoughModes.Gradient, 1, 20, param1: threshold1, param2: threshold2, minRadius: 10, maxRadius: 100);
                     for (int i = 0; i < cicles.Length; i++)
                     {
