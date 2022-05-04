@@ -208,15 +208,6 @@ namespace Shape_Detection_CSharp
                                     x2 = (int)((r - (AccumulatorHeight / 2) - ((y2 - (ImageHeight / 2)) * Math.Sin(t * DEG2RAD))) / Math.Cos(t * DEG2RAD) + (ImageWidth / 2));
                                 }
                                 var line = new Position(x1, y1, x2, y2);
-                                /*var a = Math.Cos(t * DEG2RAD);
-                                var b = Math.Sin(t * DEG2RAD);
-                                var x0 = (a * ((double)r - HoughHeight)) + CenterX;
-                                var y0 = (b * ((double)r - HoughHeight)) + CenterY;
-                                var x1 = (int)(x0 + ImageWidth * (-b));
-                                var y1 = (int)(y0 + ImageHeight * (a));
-                                var x2 = (int)(x0 - ImageWidth * (-b));
-                                var y2 = (int)(y0 - ImageHeight * (a));
-                                var line = new Position(y1,x1, y2,x2);*/
                                 result.Add(line);
                             }
                         }
